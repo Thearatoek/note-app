@@ -20,7 +20,7 @@ private val DarkColorScheme = darkColorScheme(
     primary = Color(0xFF000000),
     secondary = PurpleGrey40,
     tertiary = Pink40,
-    background = Color(0xFFD7BCE8),
+    background = Color(0xFFFCE3B1),
     surface = Color(0xFFFFFBFE),
     onPrimary = Color.White,
     onSecondary = Color.White,
@@ -33,7 +33,7 @@ private val LightColorScheme = lightColorScheme(
     primary = Color(0xFF000000),
     secondary = PurpleGrey40,
     tertiary = Pink40,
-    background = Color(0xFFD7BCE8),
+    background = Color(0xFFFCE3B1),
     surface = Color(0xFFFFFBFE),
     onPrimary = Color.White,
     onSecondary = Color.White,
@@ -69,7 +69,7 @@ fun NoteAppTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
+        typography = AppTypography,
         content = content
     )
 }

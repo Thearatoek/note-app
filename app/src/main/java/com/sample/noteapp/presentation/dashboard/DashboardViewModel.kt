@@ -3,7 +3,7 @@ package com.sample.noteapp.presentation.dashboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sample.noteapp.data.model.Note
-import com.sample.noteapp.domain.viewState.NoteViewState
+import com.sample.noteapp.domain.viewState.DashboardViewState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,31 +16,21 @@ class DashboardViewModel @Inject constructor(
     private val noteRepository: com.sample.noteapp.domain.repository.NoteRepository
 ) : ViewModel() {
 
-    private val _noteState = MutableStateFlow<NoteViewState>(NoteViewState.Loading)
-    val noteState: StateFlow<NoteViewState> = _noteState
+    private val _noteState = MutableStateFlow<DashboardViewState>(DashboardViewState.Loading)
+    val noteState: StateFlow<DashboardViewState> = _noteState
     init {
         fetchNotes()
     }
     private fun fetchNotes() {
         viewModelScope.launch {
-                _noteState.value = NoteViewState.Loading
+                _noteState.value = DashboardViewState.Loading
             noteRepository.getNoteListing().collect { notes ->
                 _noteState.value = if (notes.isEmpty()) {
-                    NoteViewState.Empty
+                    DashboardViewState.Empty
                 } else {
-                    NoteViewState.Success(notes)
+                    DashboardViewState.Success(notes)
                 }
             }
-        }
-    }
-    fun addNote(title: String, description: String) {
-        viewModelScope.launch {
-            val newNote = Note(
-                title = title,
-                description = description,
-                timestamp = System.currentTimeMillis()
-            )
-            noteRepository.insertNote(newNote)
         }
     }
     fun deleteNote(noteId: Int) {
@@ -49,9 +39,4 @@ class DashboardViewModel @Inject constructor(
         }
     }
 
-    fun updateNote(note: Note) {
-        viewModelScope.launch {
-            noteRepository.updateNote(note)
-        }
-    }
 }

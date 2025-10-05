@@ -4,11 +4,14 @@ package com.sample.noteapp.navigation
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.sample.noteapp.presentation.dashboard.DashboardScreen
 import com.sample.noteapp.presentation.note.AddNewNoteScreen
+import com.sample.noteapp.presentation.splash_screen.SplashScreenView
 
 @Composable
 fun AppNavGraph(
@@ -21,6 +24,7 @@ fun AppNavGraph(
     ) {
         dashBoardScreen(navController = navController)
         addNoteScreen(navController = navController)
+        splashScreen(navController = navController)
     }
 }
 
@@ -42,7 +46,23 @@ private fun NavGraphBuilder.addNoteScreen(
 ) {
     composable(
         NavDirections.AddNoteScreen.route,
+        arguments = listOf(
+            navArgument("noteId") {
+                type = NavType.IntType
+                defaultValue = -1 // -1 means "add new note"
+            }
+        )
     ) {
         AddNewNoteScreen(navController = navController)
+    }
+}
+// Splash screen
+private fun NavGraphBuilder.splashScreen(
+    navController: NavHostController,
+) {
+    composable(
+        NavDirections.SplashScreen.route,
+    ) {
+        SplashScreenView(navController = navController)
     }
 }

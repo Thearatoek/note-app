@@ -21,7 +21,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-               AppNavGraph(startDestination = "dashboard_screen")
+               AppNavGraph(startDestination = "splash_screen")
                 }
             }
         }

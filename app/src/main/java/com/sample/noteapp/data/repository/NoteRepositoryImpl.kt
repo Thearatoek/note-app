@@ -5,7 +5,6 @@ import com.sample.noteapp.data.mapper.toDomain
 import com.sample.noteapp.data.model.Note
 import com.sample.noteapp.data.model.NoteEntity
 import com.sample.noteapp.domain.repository.NoteRepository
-import com.sample.noteapp.domain.viewState.NoteViewState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -41,5 +40,9 @@ class NoteRepositoryImpl @Inject constructor(
                 timestamp = note.timestamp
             )
         )
+    }
+    override suspend fun getNoteById(noteId: Int): Note? {
+        val noteEntity = noteDao.getNoteById(noteId)
+        return noteEntity?.toDomain()
     }
 }

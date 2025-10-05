@@ -2,6 +2,7 @@ package com.sample.noteapp.presentation.dashboard
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,8 +13,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.BlendMode.Companion.Screen
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -21,7 +25,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.sample.noteapp.R
 import com.sample.noteapp.data.model.Note
-import com.sample.noteapp.domain.viewState.NoteViewState
+import com.sample.noteapp.domain.viewState.DashboardViewState
+import com.sample.noteapp.navigation.NavDirections
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -37,33 +42,62 @@ fun DashboardScreen(
         contentColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("My Notes") },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    actionIconContentColor = MaterialTheme.colorScheme.primary
                 ),
+                title = {
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "All Notes",
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(end = 40.dp),
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                },
                 actions = {
                     Image(
                         colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.primary),
-                        painter = painterResource(R.drawable.settings),
+                        painter = painterResource(R.drawable.add_icon),
                         contentDescription = null,
                         modifier = Modifier
-                            .size(40.dp)
+                            .size(30.dp)
                             .padding(end = 12.dp)
                             .clickable(
                                 indication = null,
-                                interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                                interactionSource = remember { MutableInteractionSource() }
                             ) {
+                                navController.navigate(NavDirections.AddNoteScreen.createRoute(-1))
                             }
                     )
                 },
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = {
-                navController.navigate("add_note_screen")
-            }) {
-                Icon(Icons.Default.Add, contentDescription = "Add Note")
-            }
+            Image(
+                colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.primary),
+                painter = painterResource(R.drawable.edit),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(35.dp)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) {
+                        navController.navigate(NavDirections.AddNoteScreen.createRoute(-1))
+                    }
+            )
         }
     ) { paddingValues ->
         Box(
@@ -72,44 +106,15 @@ fun DashboardScreen(
                 .padding(paddingValues)
         ) {
             when (val state = uiState) {
-                is NoteViewState.Loading -> {
+                is DashboardViewState.Loading -> {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
-                is NoteViewState.Empty -> {
-                   Column(
-                          modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp)
-                            .align(Alignment.Center),
-                          horizontalAlignment = Alignment.CenterHorizontally,
-                          verticalArrangement = Arrangement.Center
-                   ) {
-                       Image(
-                           colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.primary),
-                           painter = painterResource(R.drawable.empty),
-                           contentDescription = null,
-                           modifier = Modifier
-                               .size(120.dp)
-                               .padding(end = 12.dp)
-                               .clickable(
-                                   indication = null,
-                                   interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
-                               ) {
-
-                               }
-                       )
-                          Spacer(modifier = Modifier.height(8.dp))
-                          Text(
-                            text = "No notes available",
-                            modifier = Modifier.align(Alignment.CenterHorizontally),
-                            fontSize = 16.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                          )
-                   }
+                is DashboardViewState.Empty -> {
+                    EmptyNotesView()
                 }
-                is NoteViewState.Success -> {
+                is DashboardViewState.Success -> {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(16.dp),
@@ -118,7 +123,9 @@ fun DashboardScreen(
                         items(state.notes, key = { it.id }) { note ->
                             NoteItem(
                                 note = note,
-                                onNoteClick = {  },
+                                onNoteClick = {
+                                    navController.navigate("add_note_screen/${note.id}")
+                                },
                                 onDeleteClick = { viewModel.deleteNote(noteId = note.id) }
                             )
                         }
@@ -137,6 +144,11 @@ fun NoteItem(
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     Card(
+        // shadow
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        ),
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onNoteClick),
@@ -204,6 +216,52 @@ fun NoteItem(
         )
     }
 }
+
+@Composable
+fun EmptyNotesView(
+    onCreateNoteClick: () -> Unit = {}
+) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Image(
+            painter = painterResource(R.drawable.notebook),
+            contentDescription = "Notebook Icon",
+            modifier = Modifier
+                .size(120.dp)
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() },
+                    onClick = onCreateNoteClick
+                )
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "Create your first note",
+            style = MaterialTheme.typography.headlineSmall.copy(
+                fontWeight = FontWeight.Bold
+            ),
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        Text(
+            text = "Add a note about anything (your thoughts, ideas, reminders, and more) and keep it safe.",
+            style = MaterialTheme.typography.bodyMedium.copy(
+                fontWeight = FontWeight.Normal
+            ),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 24.dp)
+        )
+    }
+}
+
 
 
 private fun formatTimestamp(timestamp: Long): String {

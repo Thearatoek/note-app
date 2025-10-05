@@ -1,25 +1,28 @@
 package com.sample.noteapp.presentation.note
 
+
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.sample.noteapp.R
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddNewNoteScreen(
      navController: NavController,
@@ -28,6 +31,7 @@ fun AddNewNoteScreen(
     val state by viewModel.uiState.collectAsState()
     val focusManager = LocalFocusManager.current
     Scaffold(
+        contentColor = MaterialTheme.colorScheme.background,
         modifier = Modifier.clickable(
             indication = null,
             interactionSource = remember { MutableInteractionSource() }
@@ -35,29 +39,69 @@ fun AddNewNoteScreen(
             focusManager.clearFocus()
         },
         topBar = {
-            TopAppBar(
-                backgroundColor = Color(0xFFE6CCE6), // light pink like screenshot
-                elevation = 0.dp,
+           TopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor =MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    actionIconContentColor =MaterialTheme.colorScheme.primary
+                ),
+               navigationIcon = {
+                   Image(
+                       colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.primary),
+                       painter = painterResource(R.drawable.icon_back),
+                       contentDescription = null,
+                       modifier = Modifier
+                           .size(30.dp)
+                           .padding(start = 12.dp)
+                           .clickable(
+                               indication = null,
+                               interactionSource = remember { MutableInteractionSource() }
+                           ) {
+                               navController.popBackStack()
+                           }
+                   )
+               },
                 title = {
-                },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        navController.popBackStack()
-                    }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.DarkGray)
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                      Text(
+                            text = "Add Notes",
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(end = 40.dp),
+                            textAlign = TextAlign.Center,
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 },
                 actions = {
-                    IconButton(onClick = {
-                        viewModel.onSaveClick()
-                        navController.popBackStack()
-                    }) {
-                        Icon(Icons.Default.Check, contentDescription = "Save", tint = Color.DarkGray)
-                    }
-                }
+                    Text(
+                        text = "Save",
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (state.title.isNotBlank()) MaterialTheme.colorScheme.primary else Color.Gray
+                        ),
+                        modifier = Modifier
+                            .padding(end = 16.dp)
+                            .clickable(
+                                enabled = state.title.isNotBlank(),
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) {
+                                viewModel.onSaveClick()
+                                navController.popBackStack()
+                            }
+                    )
+                },
             )
         },
-        backgroundColor = Color(0xFFE6CCE6) // same as background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -71,9 +115,10 @@ fun AddNewNoteScreen(
                 onValueChange = {
                     viewModel.onTitleChange(it)
                 },
-                textStyle = MaterialTheme.typography.h5.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = Color.DarkGray
+                textStyle = MaterialTheme.typography.labelLarge.copy(
+                    color = Color.DarkGray,
+                    fontSize = 30.sp,
+                    fontWeight = FontWeight.Bold
                 ),
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
@@ -81,7 +126,7 @@ fun AddNewNoteScreen(
                     if (state.title.isEmpty()) {
                         Text(
                             text = "Title",
-                            style = MaterialTheme.typography.body1.copy(
+                            style = MaterialTheme.typography.labelLarge.copy(
                                 color = Color.Gray,
                                 fontSize = 30.sp
                             )
@@ -97,15 +142,15 @@ fun AddNewNoteScreen(
                 onValueChange = {
                     viewModel.onDescriptionChange(it)
                 },
-                textStyle = MaterialTheme.typography.body1.copy(color = Color.DarkGray),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .weight(1f),
+                modifier = Modifier.fillMaxWidth(),
+                textStyle = MaterialTheme.typography.labelLarge.copy(
+                    color = Color.DarkGray,   fontSize = 22.sp
+                    ),
                 decorationBox = { innerTextField ->
                     if (state.description.isEmpty()) {
                         Text(
                             text = "Description...",
-                            style = MaterialTheme.typography.body1.copy(
+                            style = MaterialTheme.typography.labelLarge.copy(
                                 color = Color.Gray,
                                 fontSize = 22.sp
                             )
